@@ -56,7 +56,7 @@ const DeaultSearch:React.FC = () => {
             scrollEnabled={false}
             keyExtractor={(item) => item.id}
             onEndReachedThreshold={0.5}
-            ListEmptyComponent={<ThemedText type='title'>No Coin Available</ThemedText>}
+            ListEmptyComponent={<ThemedText type='title'>No Coin in WishList Available</ThemedText>}
             ItemSeparatorComponent={Separator}
             renderItem={({ item }) => (
               <Container item={item}  onPress={() => handleItemPress(item)}/>

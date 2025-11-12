@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router'
 import BlurredButton from '../../reuseable/Buttons';
 import SearchResult from '@/my-component/SearchResult' ;
 import DeaultSearch from '../../my-component/DeaultSearch' ;
+import { useCallback ,useRef, useEffect } from 'react'
 
 const { width, height } = Dimensions.get('window');
 const buttons = [
@@ -24,7 +25,12 @@ const buttons = [
 const Search = () => {
      const scrollHeight = height * 0.85; 
      const [searchText, setSearchText] = useState('');
+     const [filteredText , setFilterdText] = useState('');
      const router = useRouter();
+      const handleSearchChange = (text: string) => {
+    setSearchText(text); 
+    console.log('User typed:', text); 
+  };
   return (
   <AppSafeAreaProvider>
    <AppDetailScrollView  height={scrollHeight}>
@@ -41,7 +47,7 @@ const Search = () => {
 
         </View>
       <View style={{marginTop:10, marginBottom:10}}>
-          <SearchBar value={searchText} onChangeText={setSearchText}/>
+          <SearchBar value={searchText} onChangeText={handleSearchChange}/>
       </View>
       <ScrollView horizontal  showsHorizontalScrollIndicator={false}>
       <View style={{ flexDirection:'row' , gap:20}}>
@@ -51,7 +57,13 @@ const Search = () => {
   ))}
 </View>
 </ScrollView>
-        <DeaultSearch/>
+ {searchText.trim() !== '' ? (
+   <SearchResult/>
+ ):(
+ <DeaultSearch/>
+ )}
+       
+     
        </View>
      </AppDetailScrollView>
   </AppSafeAreaProvider>
