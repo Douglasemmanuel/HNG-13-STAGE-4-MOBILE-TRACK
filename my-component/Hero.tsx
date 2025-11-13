@@ -4,7 +4,8 @@ import Card from '@/reuseable/Card'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import BlurredIcon from '@/reuseable/BlurredIcon'
-
+import { useColorScheme } from 'react-native';
+import { Colors } from '@/constants/theme';
 const Hero:React.FC = () => {
  const icons = [
   { name: 'send-outline', label: 'Send' },
@@ -12,7 +13,8 @@ const Hero:React.FC = () => {
   { name: 'time-outline', label: 'History' },
   { name: 'cash-outline', label: 'Cash' },
 ];
-
+  const colorScheme = useColorScheme() || 'light';
+      const theme = Colors[colorScheme];
 
   return (
   <View style={{marginTop:10}}>
@@ -37,7 +39,7 @@ const Hero:React.FC = () => {
          name={icon.name}
           label={icon.label}
           size={26}
-          color="#fff"
+          color={theme.icon}
           backgroundColor="rgba(0,0,0,0.2)"
           intensity={80}
           style={{ marginHorizontal: 10 }}

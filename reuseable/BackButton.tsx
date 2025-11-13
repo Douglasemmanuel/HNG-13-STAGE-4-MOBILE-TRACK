@@ -3,6 +3,8 @@ import { TouchableOpacity, StyleSheet, StyleProp, ViewStyle } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
+import { useColorScheme } from 'react-native';
+import { Colors } from '@/constants/theme';
 
 type BackButtonProps = {
   size?: number;
@@ -30,15 +32,17 @@ export default function BackButton({
       navigation.goBack(); 
     }
   };
-
+  const colorScheme = useColorScheme() || 'light';
+        const theme = Colors[colorScheme];
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
       <BlurView
         intensity={intensity}
+         experimentalBlurMethod="dimezisBlurView"
         tint="light"
         style={[
           styles.container,
-          { width: size * 2, height: size * 2, borderRadius: size, backgroundColor },
+          { width: size * 2, height: size * 2, borderRadius: size, backgroundColor:theme.card },
           style,
         ]}
       >

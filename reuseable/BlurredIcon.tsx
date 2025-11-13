@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp, Text } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp, Text, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Colors } from '@/constants/theme';
 
 type BlurredIconProps = {
-  name: string; 
+  name: string;
   size?: number;
   color?: string;
   backgroundColor?: string;
   intensity?: number;
   style?: StyleProp<ViewStyle>;
   borderRadius?: number;
-  label?: string; // optional name/text under the icon
+  label?: string;
   labelColor?: string;
   labelSize?: number;
 };
@@ -19,29 +20,55 @@ type BlurredIconProps = {
 export default function BlurredIcon({
   name,
   size = 24,
-  color = '#fff',
-  backgroundColor = 'rgba(255,255,255,0.1)',
+  color,
   intensity = 50,
   style,
   borderRadius,
   label,
-  labelColor = '#fff',
+  labelColor,
   labelSize = 12,
 }: BlurredIconProps) {
+  const colorScheme = useColorScheme() || 'light';
+  const theme = Colors[colorScheme];
+
+  // Dynamic colors for clarity on both modes
+  const iconColor = color || (colorScheme === 'dark' ? '#fff' : '#000');
+  const cardColor =
+    colorScheme === 'dark'
+      ? 'rgba(255,255,255,0.15)' // soft white for dark mode
+      : 'rgba(0,0,0,0.08)'; // subtle dark for light mode (✅ visible but elegant)
+
+  const textColor = labelColor || (colorScheme === 'dark' ? '#fff' : '#000');
+
   return (
     <View style={{ alignItems: 'center' }}>
       <BlurView
         intensity={intensity}
-        tint="light"
+        tint={colorScheme === 'dark' ? 'dark' : 'light'}
+        experimentalBlurMethod="dimezisBlurView"
         style={[
           styles.container,
-          { width: size * 2, height: size * 2, borderRadius: borderRadius || size, backgroundColor },
+          {
+            width: size * 2,
+            height: size * 2,
+            borderRadius: borderRadius || size,
+            backgroundColor: cardColor,
+          },
           style,
         ]}
       >
-        <Ionicons name={name as React.ComponentProps<typeof Ionicons>['name']} size={size} color={color} />
+        <Ionicons
+          name={name as React.ComponentProps<typeof Ionicons>['name']}
+          size={size}
+          color={iconColor}
+        />
       </BlurView>
-      {label && <Text style={{ color: labelColor, fontSize: labelSize, marginTop: 6 }}>{label}</Text>}
+
+      {label && (
+        <Text style={{ color: textColor, fontSize: labelSize, marginTop: 6 }}>
+          {label}
+        </Text>
+      )}
     </View>
   );
 }
@@ -50,11 +77,7 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden', // required for blur on Android
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4, // Android shadow
+    overflow: 'hidden',
+    // 🚫 Removed all shadows for a clean look
   },
 });

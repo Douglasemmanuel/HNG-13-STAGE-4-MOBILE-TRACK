@@ -13,6 +13,9 @@ import BlurredButton from '../../reuseable/Buttons';
 import SearchResult from '@/my-component/SearchResult' ;
 import DeaultSearch from '../../my-component/DeaultSearch' ;
 import { useCallback ,useRef, useEffect } from 'react'
+import { useMarketStore } from '@/store/Market_coin'
+import { debounce } from 'lodash';
+import { CoinMarket } from '@/types/types'
 
 const { width, height } = Dimensions.get('window');
 const buttons = [
@@ -23,14 +26,38 @@ const buttons = [
   { text: 'Layer 2', onPress: () => console.log('Layer 2 pressed') },
 ];
 const Search = () => {
+  const router = useRouter();
+     const marketcoins = useMarketStore((state)=>state.marketCoins);
      const scrollHeight = height * 0.85; 
      const [searchText, setSearchText] = useState('');
-     const [filteredText , setFilterdText] = useState('');
-     const router = useRouter();
-      const handleSearchChange = (text: string) => {
-    setSearchText(text); 
-    console.log('User typed:', text); 
+  const [filteredText, setFilteredText] = useState<CoinMarket[]>([]);
+
+  // Debounced search function
+  const debouncedSearch = debounce((text: string) => {
+    if (!text) {
+      setFilteredText([]);
+      return;
+    }
+
+    const result = marketcoins.filter((coin) =>
+      coin.id.toLowerCase().includes(text.toLowerCase())
+    );
+
+    setFilteredText(result);
+  }, 500); // wait 500ms after user stops typing
+
+  // Update search
+  const handleSearchChange = (text: string) => {
+    setSearchText(text);
+    debouncedSearch(text);
   };
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, []);
   return (
   <AppSafeAreaProvider>
    <AppDetailScrollView  height={scrollHeight}>
@@ -58,7 +85,9 @@ const Search = () => {
 </View>
 </ScrollView>
  {searchText.trim() !== '' ? (
-   <SearchResult/>
+   <SearchResult
+    data={filteredText}
+   />
  ):(
  <DeaultSearch/>
  )}

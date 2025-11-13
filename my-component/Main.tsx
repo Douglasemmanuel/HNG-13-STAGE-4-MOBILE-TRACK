@@ -5,42 +5,27 @@ import CoinImage from '@/reuseable/CoinImage'
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
-export const coins: CoinItemType[] = [
-  {
-    id: '1',
-    symbol: 'BTC',
-    amount: '$6399M',
-    price: '$63,700',
-    change: '0.80%',
-    changeType: 'up',
-    image: require('../assets/images/Douglas.jpeg'),
-  },
-  {
-    id: '2',
-    symbol: 'ETH',
-    amount: '$4800M',
-    price: '$4,800',
-    change: '1.25%',
-    changeType: 'down',
-    image: require('../assets/images/Douglas.jpeg'),
-  },
-  {
-    id: '3',
-    symbol: 'XRP',
-    amount: '$1200M',
-    price: '$1.20',
-    change: '0.50%',
-    changeType: 'up',
-    image: require('../assets/images/Douglas.jpeg'),
-  },
-];
+import { useFetchMarketcoin } from '@/service/api';
+import { useMarketStore } from '@/store/Market_coin';
+import { useEffect , useMemo } from 'react';
+import { truncateTitle } from '@/utils/StringUtilis';
+import { MarketFormatNumber } from '@/utils/NumberUtils';
+
 const Main:React.FC = () => {
+  const { isLoading, error , data} = useFetchMarketcoin('usd');
+//   useEffect(() => {
+//   if (data) {
+//     console.log('DATA fetched:', data);
+//   }
+// }, [data]);
+  const marketcoins = useMarketStore((state)=>state.marketCoins);
+  console.log('DATA', data)
       const colorScheme = useColorScheme() || 'light';
       const theme = Colors[colorScheme];
   return (
     <View style={{marginTop:20 , paddingRight:10 , paddingLeft:10}}>
         <FlatList
-               data={coins}
+               data={marketcoins?.slice(0, 10) || []}
         scrollEnabled={false}
         keyExtractor={(item) => item.id}
         onEndReachedThreshold={0.5}
@@ -56,32 +41,26 @@ const Main:React.FC = () => {
         ItemSeparatorComponent={()=><View style={{height:StyleSheet.hairlineWidth , backgroundColor:theme.background}}/>}
         renderItem={({ item }) => (
           <Container item={item}/>
+          // <ThemedText>{item.id}</ThemedText>
         )}
         />
-        {/* <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
-            <ThemedText type='subtitle'>Assets</ThemedText>
-            <View style={{ flexDirection:'row' , gap:5 , alignItems:'center'}}>
-      <ThemedText type='default'>All Claims</ThemedText>
-      <Ionicons name="chevron-down-outline" size={20} color={theme.icon} />
-    </View>
-
-        </View> */}
-        {/* <View style={{marginTop:20}}>
-             <Container/>
-        </View> */}
+        
     
     </View>
   )
 }
-export type CoinItemType = {
+export interface CoinItemType {
   id: string;
+  name: string;
   symbol: string;
-  amount: string;
-  price: string;
-  change: string;
-  changeType: 'up' | 'down';
-  image: any; 
-};
+  current_price: number;
+  image: string;
+  price_change_percentage_24h: number;
+  total_volume:number;
+  ath_change_percentage:number;
+  [key: string]: any; // allow extra API fields
+}
+
 
 type CoinItemProps = {
   item: CoinItemType;
@@ -89,31 +68,39 @@ type CoinItemProps = {
 const  Container:React.FC<CoinItemProps> =({item})=>{
      const colorScheme = useColorScheme() || 'light';
       const theme = Colors[colorScheme];
+         const changeType = useMemo(() => {
+        const value = Number(item.ath_change_percentage); // convert to number safely
+        if (!isNaN(value)) {
+          return value >= 0 ? 'up' : 'down';
+        }
+        return 'down'; // fallback if not a number
+      }, [item.ath_change_percentage]);
+      
     return(
       <View style={{paddingTop:15 , paddingBottom:10 }}>
           <View style={{flexDirection:'row' , justifyContent:'space-between' , alignItems:'center'}}>
        <View style={{flexDirection:'row' , gap:10}}>
              <CoinImage
-                imageSource={require('../assets/images/Douglas.jpeg')}
+                imageSource={{uri:item.image}}
   width={60}
   height={60}
   borderRadius={30}
   intensity={80}
             />
             <View>
-                   <ThemedText type='subtitle'>{item.symbol}</ThemedText>
-                 <ThemedText type='defaultSemiBold' style={{paddingTop:4}}>{item.amount}</ThemedText>
+                   <ThemedText type='subtitle'>{item.symbol.toUpperCase()}</ThemedText>
+                 <ThemedText type='defaultSemiBold' style={{paddingTop:4}}>{MarketFormatNumber(item.total_volume)}</ThemedText>
             </View>
        </View>
             <View >
-                <ThemedText type='subtitle'>{item.price}</ThemedText>
+                <ThemedText type='subtitle'>{item.current_price}</ThemedText>
                <View style={{flexDirection:'row', gap:5 , alignItems:'center' ,paddingTop:4}}>
-                {item.changeType ==='up' ? 
-                 <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
-                :
-                  <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
-                }
-                  <ThemedText type='defaultSemiBold'>{item.change}</ThemedText>
+                  {changeType === 'up' ? (
+                                          <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
+                                        ) : (
+                                          <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
+                                        )}
+                  <ThemedText type='defaultSemiBold'>{item.price_change_percentage_24h}</ThemedText>
                </View>
             </View>
         </View>

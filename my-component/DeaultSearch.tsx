@@ -8,55 +8,43 @@ import { Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import {Separator} from '../reuseable/Seperator' ;
 import { useRouter } from 'expo-router';
-export const coins: CoinItemType[] = [
-  {
-    id: '1',
-    name: 'Bitcoin',
-    symbol: 'BTC',
-    amount: '$6399M',
-    price: '$63,700',
-    change: '0.80%',
-    changeType: 'up',
-    image: require('../assets/images/Douglas.jpeg'),
-  },
-  {
-    id: '2',
-    name: 'Ethereum',
-    symbol: 'ETH',
-    amount: '$4800M',
-    price: '$4,800',
-    change: '1.25%',
-    changeType: 'down',
-    image: require('../assets/images/Douglas.jpeg'),
-  },
-  {
-    id: '3',
-    name: 'Ripple',
-    symbol: 'XRP',
-    amount: '$1200M',
-    price: '$1.20',
-    change: '0.50%',
-    changeType: 'up',
-    image: require('../assets/images/Douglas.jpeg'),
-  },
-];
+import { useMarketStore } from '@/store/Market_coin';
+import { useMemo , useState } from 'react';
+import { truncateTitle } from '@/utils/StringUtilis';
+import Loader from '@/reuseable/Loader';
+import { useSingleCoinStore } from '@/store/coin_store';
 
 const DeaultSearch:React.FC = () => {
+   const marketcoins = useMarketStore((state)=>state.marketCoins);
        const colorScheme = useColorScheme() || 'light';
           const theme = Colors[colorScheme];
         const router = useRouter();
+        const [loading , setLoading] = useState();
+         const [selectedId, setSelectedId] = useState<string>('');
         const handleItemPress = (item: CoinItemType) => {
-        console.log('Pressed coin:', item.name);
-          router.push('/coin');
-  };
+
+  // Find the coin in marketCoins by id
+  const selectedCoin = marketcoins.find((coin) => coin.id === item.id);
+
+  if (selectedCoin) {
+    console.log('Pressed coin:', selectedCoin.name);
+    setSelectedId(selectedCoin.id); 
+     useSingleCoinStore.getState().setSelectedCoin(selectedCoin);
+    router.push('/coin'); 
+  } else {
+    console.log('Coin not found in marketCoins');
+  }
+};
+
+        
   return (
       <View style={{marginTop:20 , paddingRight:10 , paddingLeft:10}}>
             <FlatList
-                   data={coins}
+                   data={marketcoins?.slice(0, 10) || []}
             scrollEnabled={false}
             keyExtractor={(item) => item.id}
             onEndReachedThreshold={0.5}
-            ListEmptyComponent={<ThemedText type='title'>No Coin in WishList Available</ThemedText>}
+            ListEmptyComponent={<ThemedText type='title' style={{textAlign:'center'}}>No Coin  Available</ThemedText>}
             ItemSeparatorComponent={Separator}
             renderItem={({ item }) => (
               <Container item={item}  onPress={() => handleItemPress(item)}/>
@@ -67,16 +55,18 @@ const DeaultSearch:React.FC = () => {
         </View>
   )
 }
-export type CoinItemType = {
+export interface CoinItemType {
   id: string;
+  name: string;
   symbol: string;
-  amount: string;
-  price: string;
-  change: string;
-  changeType: 'up' | 'down';
-  image: any; 
-  name:string;
-};
+  current_price: number;
+  image: string;
+  price_change_percentage_24h: number;
+  total_volume:number;
+  ath_change_percentage:number;
+  [key: string]: any; // allow extra API fields
+}
+
 
 type CoinItemProps = {
   item: CoinItemType;
@@ -85,32 +75,40 @@ type CoinItemProps = {
 const  Container:React.FC<CoinItemProps> =({item, onPress})=>{
      const colorScheme = useColorScheme() || 'light';
       const theme = Colors[colorScheme];
+      const changeType = useMemo(() => {
+  const value = Number(item.ath_change_percentage); // convert to number safely
+  if (!isNaN(value)) {
+    return value >= 0 ? 'up' : 'down';
+  }
+  return 'down'; // fallback if not a number
+}, [item.ath_change_percentage]);
+
     return(
        <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={{paddingTop:15 , paddingBottom:10 }}>
           <View style={{flexDirection:'row' , justifyContent:'space-between' , alignItems:'center'}}>
        <View style={{flexDirection:'row' , gap:10}}>
              <CoinImage
-                imageSource={require('../assets/images/Douglas.jpeg')}
+                imageSource={{uri:item.image}}
   width={60}
   height={60}
   borderRadius={30}
   intensity={80}
             />
             <View>
-                   <ThemedText type='subtitle'>{item.symbol}</ThemedText>
-                 <ThemedText type='defaultSemiBold' style={{paddingTop:4}}>{item.name}</ThemedText>
+                   <ThemedText type='subtitle'>{item.symbol.toUpperCase()}</ThemedText>
+                 <ThemedText type='defaultSemiBold' style={{paddingTop:4}}>{truncateTitle(item.name)}</ThemedText>
             </View>
        </View>
              <View >
-                            <ThemedText type='subtitle'>{item.price}</ThemedText>
+                            <ThemedText type='subtitle'>{item.current_price}</ThemedText>
                            <View style={{flexDirection:'row', gap:5 , alignItems:'center' ,paddingTop:4}}>
-                            {item.changeType ==='up' ? 
-                             <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
-                            :
-                              <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
-                            }
-                              <ThemedText type='defaultSemiBold'>{item.change}</ThemedText>
+                                    {changeType === 'up' ? (
+                          <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
+                        ) : (
+                          <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
+                        )}
+                              <ThemedText type='defaultSemiBold'>{item.price_change_percentage_24h}</ThemedText>
                            </View>
                         </View>
         </View>

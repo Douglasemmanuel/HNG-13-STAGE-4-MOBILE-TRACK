@@ -15,6 +15,8 @@ import BlurredButton from '../reuseable/Buttons';
 import CoinImage from '@/reuseable/CoinImage';
 import Card from '@/reuseable/Card';
 import TextButton from '@/reuseable/TextButton';
+import { useSingleCoinStore } from '@/store/coin_store';
+import { useFavoriteStore } from '@/store/favourites_store';
 const { width, height } = Dimensions.get('window');
 const Coin:React.FC = () => {
     const colorScheme = useColorScheme() || 'light';
@@ -37,7 +39,9 @@ const ActionButtons = [
   { text: '1Y', onPress: () => console.log('1Y pressed') },
 ];
  const [selectedButtons, setSelectedButtons] = useState<string[]>([]);
-
+const singlecoins = useSingleCoinStore((state)=>state.selectedCoin);
+const { favorites, toggleFavorite } = useFavoriteStore();
+console.log('Data-gg' , singlecoins)
   const handlePress = (text: string) => {
     if (!selectedButtons.includes(text)) {
       setSelectedButtons([...selectedButtons, text]);
@@ -53,7 +57,7 @@ const ActionButtons = [
                     onPress={()=>router.back()}
                     size={20}
                     />
-                    <ThemedText type='title'>Buy Bitcoin</ThemedText>
+                    <ThemedText type='title'>Buy {singlecoins?.name}</ThemedText>
                    </View>
                    {/* <AlertBell/> */}
         
@@ -64,18 +68,33 @@ const ActionButtons = [
                       <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
                     <View style={{flexDirection:'row' , gap:5}}>
                        <CoinImage
-                                     imageSource={require('../assets/images/Douglas.jpeg')}
+                                     imageSource={{uri:singlecoins?.image}}
                        width={64}
                        height={64}
                        borderRadius={30}
                        intensity={80}
                                  />
                                  <View>
-                                  <ThemedText type='defaultSemiBold'>Bitcoin</ThemedText>
-                                  <ThemedText type='defaultSemiBold'>BTC</ThemedText>
+                                  <ThemedText type='defaultSemiBold'>{singlecoins?.name}</ThemedText>
+                                  <ThemedText type='defaultSemiBold'>{singlecoins?.symbol}</ThemedText>
                                  </View>
                     </View>
-                     <BlurredButton  text='Add To Wishlist' onPress={()=>console.log('hii')} />
+                     <BlurredButton 
+                      text={
+            useFavoriteStore
+              .getState()
+              .favorites.find((f) => f.symbol === singlecoins?.symbol)
+              ?.isLiked
+              ? 'Remove from Wishlist'
+              : 'Add to Wishlist'
+          }
+          onPress={() => {
+            if (!singlecoins) return;
+            useFavoriteStore
+              .getState()
+              .toggleFavorite(singlecoins.symbol);
+          }}
+                      />
                   </View>
                   </View>
                  </Card>
@@ -84,33 +103,33 @@ const ActionButtons = [
                   <Card intensity={80} >
                     <View style={{padding:10}}>
                      <View style={{flexDirection:'row' , gap:10 , alignItems:"center"}}>
-                       <ThemedText type='title'>$8,0000</ThemedText>
+                       <ThemedText type='title'>${singlecoins?.current_price}</ThemedText>
                                           
                           <TouchableOpacity style={styles.button} >
                            <View style={{flexDirection:"row" ,justifyContent:'space-between'}}>
                               <Ionicons name="swap-vertical" size={20} color='white' />
-                            <Text style={styles.text}>1.40%</Text>
+                            <Text style={styles.text}>{singlecoins?.ath_change_percentage}%</Text>
                            </View>
                           </TouchableOpacity>
                   
                      </View>
                     <View style={{flexDirection:'row' , gap:5  , alignItems:"center" }}>
                        <ThemedText type='default'>Today</ThemedText>
-                     <Text style={{color:'green' , fontSize:16}}>+20.25%</Text>
+                     <Text style={{color:'green' , fontSize:16}}>+{singlecoins?.atl_change_percentage}%</Text>
                     </View>
 
                     <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
                       <View>
                              <ThemedText type='default'>Change</ThemedText>
-                               <ThemedText type='default' style={{color:'green'}}>+1.50</ThemedText>
+                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.price_change_24h}</ThemedText>
                       </View>
                         <View>
                              <ThemedText type='default'>High Price</ThemedText>
-                               <ThemedText type='default' style={{color:'green'}}>25,590.00</ThemedText>
+                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.high_24h}</ThemedText>
                       </View>
                        <View>
                              <ThemedText type='default'>Low Price</ThemedText>
-                               <ThemedText type='default' style={{color:'green'}}>14,275.00</ThemedText>
+                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.low_24h}</ThemedText>
                       </View>
                     </View>
                      <ScrollView horizontal  showsHorizontalScrollIndicator={false}>
@@ -129,16 +148,16 @@ const ActionButtons = [
                         <View style={{padding:10}}>
                           <View style={{flexDirection:"row" , justifyContent:'space-between'}}>
                             <ThemedText type='defaultSemiBold'>
-                              BITCOIN
+                              {singlecoins?.name}
                             </ThemedText>
                              <View style={{flexDirection:'row' , gap:5  , alignItems:"center" }}>
                             <Ionicons name="swap-vertical" size={20} color='green' />
-                       <ThemedText type='default' style={{color:'green'}}>+20.25%</ThemedText>
+                       <ThemedText type='default' style={{color:'green'}}>{singlecoins?.ath_change_percentage}%</ThemedText>
                     </View>
                           </View>
-                          <ThemedText type='title' style={{paddingTop:5}}>$1,6000</ThemedText>
-                          
-                          <View style={{flexDirection:'row', justifyContent:'space-between'}}>
+                          <ThemedText type='title' style={{paddingTop:5}}>${singlecoins?.current_price}</ThemedText>
+                          <Graph/>
+                          {/* <View style={{flexDirection:'row', justifyContent:'space-between' , marginTop:20}}>
                             {ActionButtons.map((btn, idx) => (
                                 <TextButton 
                                 key={idx}
@@ -146,7 +165,7 @@ const ActionButtons = [
                                   onPress={btn.onPress}
                                 />
                             ))}
-                          </View>
+                          </View> */}
                         </View>
                     </Card>
                   </View>
@@ -155,7 +174,31 @@ const ActionButtons = [
   </AppSafeAreaProvider>
   )
 }
+const Graph:React.FC=()=>{
+  const ActionButtons = [
+  { text: '1H', onPress: () => console.log('1H pressed') },
+  { text: '1D', onPress: () => console.log('1D pressed') },
+  { text: '1W', onPress: () => console.log('1W pressed') },
+  { text: '1M', onPress: () => console.log('1M pressed') },
+  { text: '1Y', onPress: () => console.log('1Y pressed') },
+];
+  return(
+    <View>
+      <View>
 
+      </View>
+       <View style={{flexDirection:'row', justifyContent:'space-between' , marginTop:20}}>
+                            {ActionButtons.map((btn, idx) => (
+                                <TextButton 
+                                key={idx}
+                                text={btn.text} 
+                                  onPress={btn.onPress}
+                                />
+                            ))}
+                          </View>
+    </View>
+  )
+}
 export default Coin
 
 const styles = StyleSheet.create({

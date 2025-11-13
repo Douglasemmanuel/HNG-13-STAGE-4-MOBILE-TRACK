@@ -15,6 +15,8 @@ const { width, height } = Dimensions.get('window');
 import Card from '../../reuseable/Card';
 import CoinImage from '../../reuseable/CoinImage'
 import { Separator } from '@/reuseable/Seperator';
+import { useRouter } from 'expo-router';
+import { useFavoriteStore } from '@/store/favourites_store';
 
 
 export const coins = [
@@ -52,13 +54,16 @@ export const coins = [
 
 export default function TabTwoScreen() {
      const scrollHeight = height * 0.85; 
+     const router = useRouter();
+     const { favorites, toggleFavorite } = useFavoriteStore();
+    console.log('Favourites',favorites)
   return (
   <AppSafeAreaProvider>
      <AppDetailScrollView  height={scrollHeight}>
        <View style={{paddingLeft:10 , paddingRight:10}} >
      <ThemedText type='title' style={{textAlign:"center"}}>Favourites</ThemedText>
       <FlatList
-                        data={coins}
+                        data={favorites}
                  scrollEnabled={false}
                  keyExtractor={(item) => item.id}
                  onEndReachedThreshold={0.5}
@@ -71,7 +76,7 @@ export default function TabTwoScreen() {
                            <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
                          <View style={{flexDirection:'row' , gap:5}}>
                             <CoinImage
-                                          imageSource={require('../../assets/images/Douglas.jpeg')}
+                                          imageSource={{uri:item.image}}
                             width={64}
                             height={64}
                             borderRadius={30}
@@ -82,7 +87,7 @@ export default function TabTwoScreen() {
                                        <ThemedText type='defaultSemiBold'>{item.symbol}</ThemedText>
                                       </View>
                          </View>
-                          <BlurredButton  text='Remove' onPress={()=>console.log('hii')} />
+                          <BlurredButton  text='Remove' onPress={()=> router.push('/coin')} />
                        </View>
                        </View>
                       </Card>
