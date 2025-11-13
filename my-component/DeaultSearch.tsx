@@ -101,14 +101,14 @@ const  Container:React.FC<CoinItemProps> =({item, onPress})=>{
             </View>
        </View>
              <View >
-                            <ThemedText type='subtitle'>{item.current_price}</ThemedText>
+                            <ThemedText type='subtitle'>${item.current_price}</ThemedText>
                            <View style={{flexDirection:'row', gap:5 , alignItems:'center' ,paddingTop:4}}>
-                                    {changeType === 'up' ? (
+                                    {item.price_change_percentage_24h > 0 ? (
                           <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
                         ) : (
                           <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
                         )}
-                              <ThemedText type='defaultSemiBold'>{item.price_change_percentage_24h}</ThemedText>
+                              <ThemedText type='defaultSemiBold'>{item.price_change_percentage_24h}%</ThemedText>
                            </View>
                         </View>
         </View>

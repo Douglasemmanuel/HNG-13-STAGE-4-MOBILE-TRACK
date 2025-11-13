@@ -107,8 +107,51 @@ export const useFetchMarketcoin = (vs_currency:string)=>{
         queryKey:['market-coins' , vs_currency],
         queryFn:()=>getMarketCoin(vs_currency),
         enabled:!!vs_currency,
-          refetchIntervalInBackground: true,
+          // refetchIntervalInBackground: true,
             // refetchInterval: 1000,
 
     })
 }
+
+
+
+export type OhlcPoint = [number, number, number, number, number];
+
+interface OhlcParams {
+  vs_currency?: string;
+  days?: number | string;
+}
+
+// Main function definition with strong typing
+ const getCoinOhlcData = async (
+  coinId: string,
+  params: OhlcParams = { vs_currency: "usd", days: 7 }
+): Promise<OhlcPoint[]> => {
+  try {
+    const response = await axios.get<OhlcPoint[]>(
+      `${API_URL}/${coinId}/ohlc`,
+      { params }
+    );
+    console.log('RESPONSE-CHART',response.data)
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      `Error fetching OHLC data for ${coinId}:`,
+      error?.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+
+export const useCoinOhlcQuery = (
+  coinId: string,
+  params: OhlcParams = { vs_currency: 'usd', days: 7 }
+) => {
+  return useQuery<OhlcPoint[], Error>({
+    queryKey: ['coinOhlc', coinId, params],
+    queryFn: () => getCoinOhlcData(coinId, params),
+    enabled: !!coinId, 
+    refetchOnWindowFocus: false,
+  });
+};

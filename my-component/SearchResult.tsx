@@ -93,7 +93,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ data }) => {
                   paddingTop: 4,
                 }}
               >
-                {changeType === 'up' ? (
+                {item.price_change_percentage_24h > 0  ? (
                   <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
                 ) : (
                   <Ionicons name="arrow-down-outline" size={20} color={theme.text} />

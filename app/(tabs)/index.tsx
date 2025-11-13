@@ -6,6 +6,7 @@ import Hero from '@/my-component/Hero';
 import Main from '@/my-component/Main';
 import AppDetailScrollView from '@/reuseable/AppDetailScrollview';
 const { width, height } = Dimensions.get('window');
+import * as Network from 'expo-network';
 export default function HomeScreen() {
     const scrollHeight = height * 0.85; 
   return (

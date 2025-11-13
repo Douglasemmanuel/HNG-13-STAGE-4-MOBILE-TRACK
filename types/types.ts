@@ -175,4 +175,5 @@ export interface CoinMarket {
   atl_date: string;
   roi: any | null;
   last_updated: string;
+  price_change_percentage: number;
 }

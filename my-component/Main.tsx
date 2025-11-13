@@ -11,13 +11,14 @@ import { useEffect , useMemo } from 'react';
 import { truncateTitle } from '@/utils/StringUtilis';
 import { MarketFormatNumber } from '@/utils/NumberUtils';
 
+
 const Main:React.FC = () => {
   const { isLoading, error , data} = useFetchMarketcoin('usd');
-  useEffect(() => {
-  if (data) {
-    console.log('DATA fetched:', data);
-  }
-}, [data]);
+//   useEffect(() => {
+//   if (data) {
+//     console.log('DATA fetched:', data);
+//   }
+// }, [data]);
   const marketcoins = useMarketStore((state)=>state.marketCoins);
   console.log('DATA', data)
       const colorScheme = useColorScheme() || 'light';
@@ -55,7 +56,7 @@ export interface CoinItemType {
   symbol: string;
   current_price: number;
   image: string;
-  price_change_percentage_24h: number;
+  price_change_percentage: number;
   total_volume:number;
   ath_change_percentage:number;
   [key: string]: any; // allow extra API fields
@@ -68,14 +69,18 @@ type CoinItemProps = {
 const  Container:React.FC<CoinItemProps> =({item})=>{
      const colorScheme = useColorScheme() || 'light';
       const theme = Colors[colorScheme];
-         const changeType = useMemo(() => {
-        const value = Number(item.ath_change_percentage); // convert to number safely
-        if (!isNaN(value)) {
-          return value >= 0 ? 'up' : 'down';
-        }
-        return 'down'; // fallback if not a number
-      }, [item.ath_change_percentage]);
-      
+       const changeType = useMemo(() => {
+  // Convert to number
+  const value = Number(item.ath_change_percentage);
+
+  // Check if it's a valid number
+  if (!isNaN(value)) {
+    return value >= 0 ? 'up' : 'down';
+  }
+
+  // Default to 'down' if invalid
+  return 'down';
+}, [item.ath_change_percentage]);
     return(
       <View style={{paddingTop:15 , paddingBottom:10 }}>
           <View style={{flexDirection:'row' , justifyContent:'space-between' , alignItems:'center'}}>
@@ -93,9 +98,9 @@ const  Container:React.FC<CoinItemProps> =({item})=>{
             </View>
        </View>
             <View >
-                <ThemedText type='subtitle'>{item.current_price}</ThemedText>
+                <ThemedText type='subtitle'>${item.current_price}</ThemedText>
                <View style={{flexDirection:'row', gap:5 , alignItems:'center' ,paddingTop:4}}>
-                  {changeType === 'up' ? (
+                  {item.price_change_percentage_24h > 0 ? (
                                           <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
                                         ) : (
                                           <Ionicons name="arrow-down-outline" size={20} color={theme.text} />

@@ -19,43 +19,43 @@ import { useRouter } from 'expo-router';
 import { useFavoriteStore } from '@/store/favourites_store';
 
 
-export const coins = [
-  {
-    id: '1',
-    name: 'Bitcoin',
-    symbol: 'BTC',
-    amount: '$6399M',
-    price: '$63,700',
-    change: '0.80%',
-    changeType: 'up',
-    image: require('../../assets/images/Douglas.jpeg'),
-  },
-  {
-    id: '2',
-    name: 'Ethereum',
-    symbol: 'ETH',
-    amount: '$4800M',
-    price: '$4,800',
-    change: '1.25%',
-    changeType: 'down',
-    image: require('../../assets/images/Douglas.jpeg'),
-  },
-  {
-    id: '3',
-    name: 'Ripple',
-    symbol: 'XRP',
-    amount: '$1200M',
-    price: '$1.20',
-    change: '0.50%',
-    changeType: 'up',
-    image: require('../../assets/images/Douglas.jpeg'),
-  },
-];
+// export const coins = [
+//   {
+//     id: '1',
+//     name: 'Bitcoin',
+//     symbol: 'BTC',
+//     amount: '$6399M',
+//     price: '$63,700',
+//     change: '0.80%',
+//     changeType: 'up',
+//     image: require('../../assets/images/Douglas.jpeg'),
+//   },
+//   {
+//     id: '2',
+//     name: 'Ethereum',
+//     symbol: 'ETH',
+//     amount: '$4800M',
+//     price: '$4,800',
+//     change: '1.25%',
+//     changeType: 'down',
+//     image: require('../../assets/images/Douglas.jpeg'),
+//   },
+//   {
+//     id: '3',
+//     name: 'Ripple',
+//     symbol: 'XRP',
+//     amount: '$1200M',
+//     price: '$1.20',
+//     change: '0.50%',
+//     changeType: 'up',
+//     image: require('../../assets/images/Douglas.jpeg'),
+//   },
+// ];
 
 export default function TabTwoScreen() {
      const scrollHeight = height * 0.85; 
      const router = useRouter();
-     const { favorites, toggleFavorite } = useFavoriteStore();
+     const { removeFavorite , favorites } = useFavoriteStore();
     console.log('Favourites',favorites)
   return (
   <AppSafeAreaProvider>
@@ -74,7 +74,7 @@ export default function TabTwoScreen() {
                      <Card intensity={80} >
                        <View style={{padding:10}}>
                            <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
-                         <View style={{flexDirection:'row' , gap:5}}>
+                         <View style={{flexDirection:'row' , gap:10}}>
                             <CoinImage
                                           imageSource={{uri:item.image}}
                             width={64}
@@ -82,14 +82,14 @@ export default function TabTwoScreen() {
                             borderRadius={30}
                             intensity={80}
                                       />
-                                      <View>
+                                      <View style={{paddingTop:3}}>
                                        <ThemedText type='defaultSemiBold'>{item.name}</ThemedText>
                                        <ThemedText type='defaultSemiBold'>{item.symbol}</ThemedText>
                                       </View>
                          </View>
                           <BlurredButton 
                            text='Remove' 
-                           onPress={()=> router.push('/coin')}
+                            onPress={() => removeFavorite(item.id)}
                             />
                        </View>
                        </View>

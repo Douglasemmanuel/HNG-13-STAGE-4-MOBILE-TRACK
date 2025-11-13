@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { asyncStorageAdapter } from '../utils/strorage';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface FavoriteCoin {
   id: string; // use name as id
@@ -14,16 +14,17 @@ interface FavoriteStore {
   favorites: FavoriteCoin[];
   addFavorite: (coin: Omit<FavoriteCoin, 'id' | 'isLiked'>) => void;
   removeFavorite: (name: string) => void;
-  toggleFavorite: (name: string) => void;
+  toggleFavorite: (symbol: string) => void;
   clearFavorites: () => void;
 }
 
 export const useFavoriteStore = create<FavoriteStore>()(
-  persist(
+  persist<FavoriteStore>(
     (set, get) => ({
       favorites: [],
 
       addFavorite: (coin) => {
+        if (!coin.name || !coin.symbol) return; // extra safety check
         const existing = get().favorites.find((c) => c.id === coin.name);
         if (!existing) {
           set((state) => ({
@@ -35,26 +36,23 @@ export const useFavoriteStore = create<FavoriteStore>()(
         }
       },
 
-      removeFavorite: (name) => {
+      removeFavorite: (name) =>
         set((state) => ({
           favorites: state.favorites.filter((c) => c.id !== name),
-        }));
-      },
+        })),
 
-      toggleFavorite: (name) => {
+      toggleFavorite: (symbol) =>
         set((state) => ({
           favorites: state.favorites.map((c) =>
-            c.id === name ? { ...c, isLiked: !c.isLiked } : c
+            c.symbol === symbol ? { ...c, isLiked: !c.isLiked } : c
           ),
-        }));
-      },
+        })),
 
       clearFavorites: () => set({ favorites: [] }),
     }),
     {
-      name: 'favorite-coins',
-      storage: asyncStorageAdapter, // custom AsyncStorage adapter
+      name: 'favorites-storage',
+      storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );
-
