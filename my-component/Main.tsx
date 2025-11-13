@@ -13,11 +13,11 @@ import { MarketFormatNumber } from '@/utils/NumberUtils';
 
 const Main:React.FC = () => {
   const { isLoading, error , data} = useFetchMarketcoin('usd');
-//   useEffect(() => {
-//   if (data) {
-//     console.log('DATA fetched:', data);
-//   }
-// }, [data]);
+  useEffect(() => {
+  if (data) {
+    console.log('DATA fetched:', data);
+  }
+}, [data]);
   const marketcoins = useMarketStore((state)=>state.marketCoins);
   console.log('DATA', data)
       const colorScheme = useColorScheme() || 'light';

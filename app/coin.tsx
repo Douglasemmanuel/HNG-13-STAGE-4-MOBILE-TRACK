@@ -18,6 +18,7 @@ import TextButton from '@/reuseable/TextButton';
 import { useSingleCoinStore } from '@/store/coin_store';
 import { useFavoriteStore } from '@/store/favourites_store';
 const { width, height } = Dimensions.get('window');
+
 const Coin:React.FC = () => {
     const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];

@@ -67,7 +67,7 @@ export default function TabTwoScreen() {
                  scrollEnabled={false}
                  keyExtractor={(item) => item.id}
                  onEndReachedThreshold={0.5}
-                 ListEmptyComponent={<ThemedText type='title'>No Coin in WishList Available</ThemedText>}
+                 ListEmptyComponent={<ThemedText type='subtitle'  style={{textAlign:"center"}}>No Coin in WishList Available</ThemedText>}
                  ItemSeparatorComponent={Separator}
                  renderItem={({ item }) => (
                   <View style={{paddingTop:15, paddingBottom:15}}>
@@ -87,7 +87,10 @@ export default function TabTwoScreen() {
                                        <ThemedText type='defaultSemiBold'>{item.symbol}</ThemedText>
                                       </View>
                          </View>
-                          <BlurredButton  text='Remove' onPress={()=> router.push('/coin')} />
+                          <BlurredButton 
+                           text='Remove' 
+                           onPress={()=> router.push('/coin')}
+                            />
                        </View>
                        </View>
                       </Card>
