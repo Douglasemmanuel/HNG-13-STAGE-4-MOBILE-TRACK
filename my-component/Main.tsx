@@ -42,7 +42,7 @@ const Main:React.FC = () => {
         ItemSeparatorComponent={()=><View style={{height:StyleSheet.hairlineWidth , backgroundColor:theme.background}}/>}
         renderItem={({ item }) => (
           <Container item={item}/>
-          // <ThemedText>{item.id}</ThemedText>
+        
         )}
         />
         
@@ -101,11 +101,11 @@ const  Container:React.FC<CoinItemProps> =({item})=>{
                 <ThemedText type='subtitle'>${item.current_price}</ThemedText>
                <View style={{flexDirection:'row', gap:5 , alignItems:'center' ,paddingTop:4}}>
                   {item.price_change_percentage_24h > 0 ? (
-                                          <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
+                                          <Ionicons name="arrow-up-outline" size={20} color='green' />
                                         ) : (
-                                          <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
+                                          <Ionicons name="arrow-down-outline" size={20} color='red' />
                                         )}
-                  <ThemedText type='defaultSemiBold'>{item.price_change_percentage_24h}</ThemedText>
+                  <ThemedText type='defaultSemiBold' style={{color: item.price_change_percentage_24h > 0 ? 'green' :'red'}}>{item.price_change_percentage_24h}</ThemedText>
                </View>
             </View>
         </View>

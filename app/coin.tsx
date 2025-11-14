@@ -17,11 +17,11 @@ import Card from '@/reuseable/Card';
 import TextButton from '@/reuseable/TextButton';
 import { useSingleCoinStore } from '@/store/coin_store';
 import { useFavoriteStore } from '@/store/favourites_store';
-const { width, height } = Dimensions.get('window');
 import { LineChart } from 'react-native-wagmi-charts';
-import { useCoinOhlcQuery } from '@/service/api';
-import { useMemo } from 'react';
-
+import { useMemo , useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useCandleChartData , DaysOrHours  } from '@/service/api';
+const { width, height } = Dimensions.get('window');
 const Coin:React.FC = () => {
     const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
@@ -69,11 +69,11 @@ const {addFavorite , toggleFavorite , favorites}  = useFavoriteStore()
                    {/* <AlertBell/> */}
         
                 </View>
-               <View style={{marginTop:10}}>
+               <View style={{marginTop:25}}>
                   <Card intensity={80} >
                   <View style={{padding:10}}>
                       <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
-                    <View style={{flexDirection:'row' , gap:5}}>
+                    <View style={{flexDirection:'row' , gap:10}}>
                        <CoinImage
                                      imageSource={{uri:singlecoins?.image}}
                        width={64}
@@ -81,13 +81,13 @@ const {addFavorite , toggleFavorite , favorites}  = useFavoriteStore()
                        borderRadius={30}
                        intensity={80}
                                  />
-                                 <View>
+                                 <View style={{paddingTop:5}}>
                                   <ThemedText type='defaultSemiBold'>{singlecoins?.name}</ThemedText>
                                   <ThemedText type='defaultSemiBold'>{singlecoins?.symbol}</ThemedText>
                                  </View>
                     </View>
                      <BlurredButton
-                    text={isLiked ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    text={isLiked ? 'Remove' : 'Add to Wishlist'}
                     onPress={() => {
                       if (isLiked) {
                         toggleFavorite(singlecoins?.symbol ?? '' );
@@ -118,27 +118,27 @@ const {addFavorite , toggleFavorite , favorites}  = useFavoriteStore()
                           </TouchableOpacity>
                   
                      </View>
-                    <View style={{flexDirection:'row' , gap:5  , alignItems:"center" }}>
+                    <View style={{flexDirection:'row' , gap:5  , alignItems:"center" , marginTop:10 }}>
                        <ThemedText type='default'>Today</ThemedText>
                      <Text style={{color:'green' , fontSize:16}}>+{singlecoins?.atl_change_percentage?.toFixed(2)}%</Text>
                     </View>
 
-                    <View style={{flexDirection:'row' , justifyContent:'space-between'}}>
+                    <View style={{flexDirection:'row' , justifyContent:'space-between', marginTop:10}}>
                       <View>
                              <ThemedText type='default'>Change</ThemedText>
-                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.price_change_24h}</ThemedText>
+                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.price_change_24h.toFixed(2)}</ThemedText>
                       </View>
                         <View>
                              <ThemedText type='default'>High Price</ThemedText>
-                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.high_24h}</ThemedText>
+                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.high_24h.toFixed(2)}</ThemedText>
                       </View>
                        <View>
                              <ThemedText type='default'>Low Price</ThemedText>
-                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.low_24h}</ThemedText>
+                               <ThemedText type='default' style={{color:'green'}}>{singlecoins?.low_24h.toFixed(2)}</ThemedText>
                       </View>
                     </View>
                      <ScrollView horizontal  showsHorizontalScrollIndicator={false}>
-                      <View style={{ flexDirection:'row' , gap:15}}>
+                      <View style={{ flexDirection:'row' , gap:15 , marginTop:15}}>
                               
                         {buttons.map((btn, idx) => (
                           <BlurredButton key={idx} text={btn.text} onPress={btn.onPress} />
@@ -161,7 +161,7 @@ const {addFavorite , toggleFavorite , favorites}  = useFavoriteStore()
                     </View>
                           </View>
                           <ThemedText type='title' style={{paddingTop:5}}>${singlecoins?.current_price}</ThemedText>
-                          <Graph coinId={singlecoins?.name ?? ''}/>
+                          <Graph coinId={singlecoins?.id ?? ''} vs_currency='usd'/>
                           
                         </View>
                     </Card>
@@ -173,119 +173,108 @@ const {addFavorite , toggleFavorite , favorites}  = useFavoriteStore()
 }
 type CoinDataProps = {
   coinId: string;
+   vs_currency:string
 };
 
-// const Graph:React.FC<CoinDataProps> = ({coinId})=>{
-//    const { data, isLoading, error } = useCoinOhlcQuery(coinId, {
-//     vs_currency: 'usd',
-//     days: 7,
-//   });
-//   const ActionButtons = [
-//   { text: '1H', onPress: () => console.log('1H pressed')  },
-//   { text: '1D', onPress: () => console.log('1D pressed') },
-//   { text: '1W', onPress: () => console.log('1W pressed') },
-//   { text: '1M', onPress: () => console.log('1M pressed') },
-//   { text: '1Y', onPress: () => console.log('1Y pressed') },
-// ];
-//   return(
-//     <View>
-//       {/* <LineChart.Provider data={[]}>
-//       <LineChart>
-//         <LineChart.Path />
-//       </LineChart>
-//     </LineChart.Provider> */}
+type DaysType = 1 | 7 | 30 | 365;
 
 
-   
-//        <View style={{flexDirection:'row', justifyContent:'space-between' , marginTop:20}}>
-//                             {ActionButtons.map((btn, idx) => (
-//                                 <TextButton 
-//                                 key={idx}
-//                                 text={btn.text} 
-//                                   onPress={btn.onPress}
-//                                 />
-//                             ))}
-//                           </View>
-//     </View>
-//   )
-// }
-const Graph: React.FC<CoinDataProps> = ({ coinId }) => {
-  const [selectedRange, setSelectedRange] = useState<"1H" | "1D" | "1W" | "1M" | "1Y">("1W");
+const Graph: React.FC<CoinDataProps> = ({ coinId, vs_currency = 'usd' }) => {
+  const [activeRange, setActiveRange] = useState<DaysOrHours>(1);
+const normalizedId = coinId.toLowerCase().replace(/\s+/g, '-');
+console.log('id' , coinId)
+console.log('Normalize' , normalizedId)
+  
+  const { data, isLoading, isError, fetchForDays } = useCandleChartData(normalizedId, vs_currency);
+//    useEffect(() => {
+//   if (!data && activeRange === 0.0416667) {
+//     fetchForDays(0.0416667);
+//   }
+// }, []);
 
-  // Map button text to CoinGecko 'days' parameter
-  const rangeMap: Record<string, number | string> = {
-    "1H": 1 / 24, // 1 hour
-    "1D": 1,
-    "1W": 7,
-    "1M": 30,
-    "1Y": 365,
-  };
-
-  // Dynamically fetch OHLC data based on selectedRange
-  const { data, isLoading, error } = useCoinOhlcQuery(coinId, {
-    vs_currency: "usd",
-    days: rangeMap[selectedRange],
-  });
-
-  // Prepare data for LineChart
-  const chartData = useMemo(() => {
-    if (!data) return [];
-    return data.map(([timestamp, open, high, low, close]) => ({
-      timestamp,
-      value: close,
-    }));
-  }, [data]);
-
-  const screenWidth = Dimensions.get("window").width;
-
-  // Define buttons with dynamic onPress
-  const ActionButtons = [
-    { text: '1H', onPress: () => setSelectedRange("1H") },
-    { text: '1D', onPress: () => setSelectedRange("1D") },
-    { text: '1W', onPress: () => setSelectedRange("1W") },
-    { text: '1M', onPress: () => setSelectedRange("1M") },
-    { text: '1Y', onPress: () => setSelectedRange("1Y") },
+  const ActionButtons: { text: string; days: DaysOrHours }[] = [
+    // { text: '1H', days: 0.0416667 },
+    { text: '1D', days: 1 },
+    { text: '1W', days: 7 },
+    { text: '1M', days: 30 },
+    { text: '1Y', days: 365 },
   ];
 
-  if (isLoading) return <ActivityIndicator size="large" />;
-  if (error) return <Text style={{ color: "red" }}>Error loading chart</Text>;
+  const colorScheme = useColorScheme() || 'light';
+  const theme = Colors[colorScheme];
+
+  // Format OHLC data for the chart
+  const formattedData = data?.map(([timestamp, open, high, low, close]: number[]) => ({
+    timestamp,
+    open,
+    high,
+    low,
+    value: close,
+  })) || [];
 
   return (
-    <View style={{ paddingHorizontal: 10 }}>
-      {/* Line Chart */}
-      <LineChart.Provider data={chartData}>
-        <LineChart height={screenWidth / 2} width={screenWidth}>
-          <LineChart.Path color="#16c784" />
-          <LineChart.CursorCrosshair color="#16c784" />
-        </LineChart>
-      </LineChart.Provider>
-
-      {/* Action Buttons */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginTop: 20,
-        }}
-      >
-        {ActionButtons.map((btn, idx) => (
-          <TouchableOpacity
-            key={idx}
-            onPress={btn.onPress}
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-              backgroundColor: selectedRange === btn.text ? "#16c784" : "#333",
-              borderRadius: 6,
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "bold" }}>{btn.text}</Text>
-          </TouchableOpacity>
-        ))}
+<GestureHandlerRootView style={{ flex: 1 }}>
+  <View style={{ flex: 1, padding: 1 }}>
+    
+    {/* Loading and Error States */}
+    {isLoading && <ActivityIndicator size="large" color="#4CAF50" />}
+    {/* {isError && (
+      <View style={{ marginBottom: 16 }}>
+        <TextButton text="Error loading data" active={false} onPress={() => {}} />
       </View>
+    )} */}
+
+ 
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      {!isLoading && formattedData.length > 0 && (
+        <View
+          style={{
+            height: '80%', 
+            width: '100%',
+            maxWidth: 350,
+            paddingVertical: 16,
+          }}
+        >
+          <LineChart.Provider data={formattedData}>
+            <LineChart.PriceText
+              style={{ color: theme.text, fontSize: 14, marginBottom: 8 }}
+            />
+            <LineChart>
+              <LineChart.Path color="#4CAF50" width={2} />
+              <LineChart.CursorCrosshair />
+            </LineChart>
+          </LineChart.Provider>
+        </View>
+      )}
     </View>
+
+  
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 16,
+      }}
+    >
+      {ActionButtons.map((btn) => (
+        <TextButton
+          key={btn.days}
+          text={btn.text}
+          active={activeRange === btn.days}
+          onPress={() => {
+            setActiveRange(btn.days);
+            fetchForDays(btn.days);
+          }}
+        />
+      ))}
+    </View>
+  </View>
+</GestureHandlerRootView>
+
+
   );
 };
+
 export default Coin
 
 const styles = StyleSheet.create({

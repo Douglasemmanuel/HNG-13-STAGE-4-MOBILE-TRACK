@@ -1,9 +1,10 @@
 import axios from "axios";
-import { Query, useQuery } from "@tanstack/react-query";
+import { Query, useQuery , QueryObserverResult , UseQueryResult } from "@tanstack/react-query";
 import { CoinListItem , CoinDetail  ,CoinMarket} from "@/types/types";
 import { useCoinListStore } from "@/store/coinList_store";
 import { useSingleCoinStore } from "@/store/coin_store";
 import { useMarketStore } from "@/store/Market_coin";
+import { useState } from "react";
 
 
  export const API_URL = 'https://api.coingecko.com/api/v3/coins/'
@@ -14,61 +15,6 @@ type AllCoinResponse = CoinListItem[];
 type SingleCoinResponse = CoinDetail;
 export type MarketResponse = CoinMarket[];
 
- const fetchAllCoins = async (): Promise<AllCoinResponse> => {
-  try {
-    const { data } = await axios.get<AllCoinResponse>(API_URL, {
-      headers: {
-        'x-cg-demo-api-key': process.env.COINGECKO_API_KEY,
-      },
-    });
-    return data; 
-  } catch (error) {
-    console.error('Error fetching coins:', error);
-    return []; 
-    
-  }
-};
-
-export const useFetchAllCoin = () =>{
-    return useQuery<AllCoinResponse , Error>({
-        queryKey:['allCoin'],
-        queryFn:fetchAllCoins,
-        refetchIntervalInBackground:true,
-    })
-}
-
-
-
-//  const fetchCoinById = async (id: string):Promise<SingleCoinResponse | null> => {
-//   try {
-//     const response = await axios.get<SingleCoinResponse>(`${API_URL}/${id}`, {
-//       headers: {
-//          'x-cg-demo-api-key': process.env.COINGECKO_API_KEY,
-//       }
-      
-//     });
-//     const { setCoinData } = useSingleCoinStore.getState();
-//     setCoinData(response.data);
-
-//     return response.data; // ✅ good
-//   } catch (error) {
-//     console.error('Error fetching market coins:', error);
-//      useSingleCoinStore.getState().clearCoinData();
-//     return null;
-//   };
-// };
-
-
-// export const useSingleCoin = (id: string) => {
-// return useQuery<SingleCoinResponse | null, Error>({
-//     queryKey:['coin' , id],
-//     queryFn: ()=>fetchCoinById(id),
-//     enabled:!!id,
-//     refetchIntervalInBackground: true,
-
-// })
- 
-// };
 
 
 
@@ -95,7 +41,6 @@ export const getMarketCoin = async (vs_currency: string): Promise<MarketResponse
   } catch (error) {
     console.error('Error fetching market coins:', error);
 
-    // ✅ return an empty array so it always fulfills the Promise<MarketResponse>
     useMarketStore.getState().clearMarketCoins();
     return [];
   }
@@ -107,51 +52,61 @@ export const useFetchMarketcoin = (vs_currency:string)=>{
         queryKey:['market-coins' , vs_currency],
         queryFn:()=>getMarketCoin(vs_currency),
         enabled:!!vs_currency,
-          // refetchIntervalInBackground: true,
-            // refetchInterval: 1000,
+          refetchIntervalInBackground: true,
+            refetchInterval:  25 * 60 * 1000,
 
     })
 }
 
 
+//  const [days, setDays] = useState<DaysType | null>(null);
 
-export type OhlcPoint = [number, number, number, number, number];
 
-interface OhlcParams {
-  vs_currency?: string;
-  days?: number | string;
-}
 
-// Main function definition with strong typing
- const getCoinOhlcData = async (
+
+export type DaysOrHours = 1 | 7 | 30 | 365;
+
+export const getCandleChartData = async (
   coinId: string,
-  params: OhlcParams = { vs_currency: "usd", days: 7 }
-): Promise<OhlcPoint[]> => {
+  days: DaysOrHours =1,
+  vs_currency: string = 'usd'
+) => {
   try {
-    const response = await axios.get<OhlcPoint[]>(
-      `${API_URL}/${coinId}/ohlc`,
-      { params }
+    const response = await axios.get(
+      `${API_URL}${coinId}/ohlc?vs_currency=${vs_currency}&days=${days}`
     );
-    console.log('RESPONSE-CHART',response.data)
     return response.data;
-  } catch (error: any) {
+  } catch (e: any) {
     console.error(
-      `Error fetching OHLC data for ${coinId}:`,
-      error?.response?.data || error.message
+      `Error fetching candle chart for coinId="${coinId}", days=${days}, vs_currency="${vs_currency}"`,
+      e.response?.status,
+      e.response?.data || e.message
     );
-    throw error;
+    throw e;
   }
 };
 
 
-export const useCoinOhlcQuery = (
+// React Query hook with manual triggering
+export const useCandleChartData = (
   coinId: string,
-  params: OhlcParams = { vs_currency: 'usd', days: 7 }
-) => {
-  return useQuery<OhlcPoint[], Error>({
-    queryKey: ['coinOhlc', coinId, params],
-    queryFn: () => getCoinOhlcData(coinId, params),
-    enabled: !!coinId, 
-    refetchOnWindowFocus: false,
+  vs_currency: string = 'usd'
+): ({
+  fetchForDays: (selectedDays: DaysOrHours) => void;
+} & UseQueryResult<number[][], unknown>) => {
+  const [days, setDays] = useState<DaysOrHours>( 1);
+
+  const query = useQuery<number[][], unknown>({
+    queryKey: ['candle-chart', coinId, vs_currency, days],
+    queryFn: () => getCandleChartData(coinId, days, vs_currency),
+    enabled: false,
   });
+
+  const fetchForDays = (selectedDays: DaysOrHours) => {
+    setDays(selectedDays);
+    query.refetch();
+  };
+
+  return { ...query, fetchForDays };
 };
+

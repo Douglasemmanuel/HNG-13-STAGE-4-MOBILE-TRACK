@@ -94,15 +94,13 @@ const SearchResult: React.FC<SearchResultProps> = ({ data }) => {
                 }}
               >
                 {item.price_change_percentage_24h > 0  ? (
-                  <Ionicons name="arrow-up-outline" size={20} color={theme.text} />
+                  <Ionicons name="arrow-up-outline" size={20} color='green' />
                 ) : (
-                  <Ionicons name="arrow-down-outline" size={20} color={theme.text} />
+                  <Ionicons name="arrow-down-outline" size={20} color='red' />
                 )}
                 <ThemedText
                   type="defaultSemiBold"
-                  style={{
-                    color: theme.text,
-                  }}
+                  style={{color: item.price_change_percentage_24h > 0 ? 'green' :'red'}}
                 >
                   {item.price_change_percentage_24h.toFixed(2)}%
                 </ThemedText>
