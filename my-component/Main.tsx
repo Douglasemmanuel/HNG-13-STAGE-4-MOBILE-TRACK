@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View , FlatList } from 'react-native'
+import { StyleSheet, Text, View , FlatList , TouchableOpacity } from 'react-native'
 import React from 'react'
 import { ThemedText } from '@/components/themed-text'
 import CoinImage from '@/reuseable/CoinImage'
@@ -10,10 +10,14 @@ import { useMarketStore } from '@/store/Market_coin';
 import { useEffect , useMemo } from 'react';
 import { truncateTitle } from '@/utils/StringUtilis';
 import { MarketFormatNumber } from '@/utils/NumberUtils';
+import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useSingleCoinStore } from '@/store/coin_store';
 
 
 const Main:React.FC = () => {
   const { isLoading, error , data} = useFetchMarketcoin('usd');
+  const router = useRouter()
 //   useEffect(() => {
 //   if (data) {
 //     console.log('DATA fetched:', data);
@@ -23,6 +27,20 @@ const Main:React.FC = () => {
   console.log('DATA', data)
       const colorScheme = useColorScheme() || 'light';
       const theme = Colors[colorScheme];
+      const [selectedId, setSelectedId] = useState<string>('');
+           const handleItemPress = (item: CoinItemType) => {
+      
+        const selectedCoin = marketcoins.find((coin) => coin.id === item.id);
+      
+        if (selectedCoin) {
+          console.log('Pressed coin:', selectedCoin.name);
+          setSelectedId(selectedCoin.id); 
+           useSingleCoinStore.getState().setSelectedCoin(selectedCoin);
+          router.push('/coin'); 
+        } else {
+          console.log('Coin not found in marketCoins');
+        }
+      };
   return (
     <View style={{marginTop:20 , paddingRight:10 , paddingLeft:10}}>
         <FlatList
@@ -41,7 +59,7 @@ const Main:React.FC = () => {
         ListEmptyComponent={<ThemedText type='title'>No Coin Available</ThemedText>}
         ItemSeparatorComponent={()=><View style={{height:StyleSheet.hairlineWidth , backgroundColor:theme.background}}/>}
         renderItem={({ item }) => (
-          <Container item={item}/>
+          <Container item={item}  onPress={() => handleItemPress(item)}/>
         
         )}
         />
@@ -65,8 +83,9 @@ export interface CoinItemType {
 
 type CoinItemProps = {
   item: CoinItemType;
+   onPress: () => void;
 };
-const  Container:React.FC<CoinItemProps> =({item})=>{
+const  Container:React.FC<CoinItemProps> =({item , onPress})=>{
      const colorScheme = useColorScheme() || 'light';
       const theme = Colors[colorScheme];
        const changeType = useMemo(() => {
@@ -82,6 +101,7 @@ const  Container:React.FC<CoinItemProps> =({item})=>{
   return 'down';
 }, [item.ath_change_percentage]);
     return(
+       <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={{paddingTop:15 , paddingBottom:10 }}>
           <View style={{flexDirection:'row' , justifyContent:'space-between' , alignItems:'center'}}>
        <View style={{flexDirection:'row' , gap:10}}>
@@ -110,6 +130,7 @@ const  Container:React.FC<CoinItemProps> =({item})=>{
             </View>
         </View>
       </View>
+      </TouchableOpacity>
     )
 }
 export default Main

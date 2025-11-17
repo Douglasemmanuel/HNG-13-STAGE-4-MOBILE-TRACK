@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Query, useQuery , QueryObserverResult , UseQueryResult } from "@tanstack/react-query";
+import { Query, useQuery , QueryObserverResult , UseQueryResult, useQueryClient } from "@tanstack/react-query";
 import { CoinListItem , CoinDetail  ,CoinMarket} from "@/types/types";
 import { useCoinListStore } from "@/store/coinList_store";
 import { useSingleCoinStore } from "@/store/coin_store";
@@ -19,7 +19,7 @@ export type MarketResponse = CoinMarket[];
 
 
 
-export const getMarketCoin = async (vs_currency: string): Promise<MarketResponse> => {
+export const getMarketCoin = async (vs_currency: string): Promise<MarketResponse | undefined > => {
   try {
     const response = await axios.get<MarketResponse>(`${API_URL}markets`, {
       params: {
@@ -37,18 +37,16 @@ export const getMarketCoin = async (vs_currency: string): Promise<MarketResponse
     const { setMarketCoins } = useMarketStore.getState();
     setMarketCoins(response.data);
 
-    return response.data; // ✅ good
+    return response.data; 
   } catch (error) {
     console.error('Error fetching market coins:', error);
 
-    useMarketStore.getState().clearMarketCoins();
-    return [];
   }
 };
 
 // api to fetch all the coins
 export const useFetchMarketcoin = (vs_currency:string)=>{
-    return useQuery<MarketResponse , Error>({
+    return useQuery<MarketResponse | undefined , Error>({
         queryKey:['market-coins' , vs_currency],
         queryFn:()=>getMarketCoin(vs_currency),
         enabled:!!vs_currency,

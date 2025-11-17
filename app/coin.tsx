@@ -21,6 +21,7 @@ import { LineChart } from 'react-native-wagmi-charts';
 import { useMemo , useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useCandleChartData , DaysOrHours  } from '@/service/api';
+import { truncateTitle } from '@/utils/StringUtilis';
 const { width, height } = Dimensions.get('window');
 const Coin:React.FC = () => {
     const colorScheme = useColorScheme() || 'light';
@@ -82,7 +83,7 @@ const {addFavorite , toggleFavorite , favorites}  = useFavoriteStore()
                        intensity={80}
                                  />
                                  <View style={{paddingTop:5}}>
-                                  <ThemedText type='defaultSemiBold'>{singlecoins?.name}</ThemedText>
+                                  <ThemedText type='defaultSemiBold'>{truncateTitle(singlecoins?.name)}</ThemedText>
                                   <ThemedText type='defaultSemiBold'>{singlecoins?.symbol}</ThemedText>
                                  </View>
                     </View>
@@ -186,11 +187,10 @@ console.log('id' , coinId)
 console.log('Normalize' , normalizedId)
   
   const { data, isLoading, isError, fetchForDays } = useCandleChartData(normalizedId, vs_currency);
-//    useEffect(() => {
-//   if (!data && activeRange === 0.0416667) {
-//     fetchForDays(0.0416667);
-//   }
-// }, []);
+  useEffect(() => {
+  fetchForDays(1);
+  setActiveRange(1);
+}, []);
 
   const ActionButtons: { text: string; days: DaysOrHours }[] = [
     // { text: '1H', days: 0.0416667 },
@@ -218,12 +218,7 @@ console.log('Normalize' , normalizedId)
     
     {/* Loading and Error States */}
     {isLoading && <ActivityIndicator size="large" color="#4CAF50" />}
-    {/* {isError && (
-      <View style={{ marginBottom: 16 }}>
-        <TextButton text="Error loading data" active={false} onPress={() => {}} />
-      </View>
-    )} */}
-
+   
  
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       {!isLoading && formattedData.length > 0 && (
@@ -262,9 +257,11 @@ console.log('Normalize' , normalizedId)
           text={btn.text}
           active={activeRange === btn.days}
           onPress={() => {
-            setActiveRange(btn.days);
-            fetchForDays(btn.days);
-          }}
+              const days = btn.days;
+              setActiveRange(days);
+              fetchForDays(days);
+            }}
+
         />
       ))}
     </View>

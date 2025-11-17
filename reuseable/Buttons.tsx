@@ -16,8 +16,8 @@ type BlurredButtonProps = {
 export default function BlurredButton({
   text,
   onPress,
-  paddingVertical = 12,
-  paddingHorizontal = 24,
+  paddingVertical = 10,
+  paddingHorizontal = 12,
   borderRadius = 30,
   style,
 }: BlurredButtonProps) {
